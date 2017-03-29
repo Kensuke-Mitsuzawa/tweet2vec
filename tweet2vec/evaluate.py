@@ -1,17 +1,25 @@
 '''
 For evaluating precision and recall metrics
 '''
+# data object
+from numpy import ndarray
+from collections import OrderedDict
 import numpy as np
 import sys
-import cPickle as pkl
+import six
 import io
-
+if six.PY2:
+    import cPickle as pkl
+else:
+    import pickle as pkl
 import matplotlib.pyplot as plt
+from typing import List
 
 K1 = 1
 K2 = 10
 
 HIST = False
+
 
 def precision(p, t, k):
     '''
@@ -26,6 +34,7 @@ def precision(p, t, k):
                 res[idx] += 1
     return np.sum(res)/(n*k)
 
+
 def recall(p, t, k):
     '''
     Compute recall @ k for predictions p and targets k
@@ -39,6 +48,7 @@ def recall(p, t, k):
                 res[idx] += 1
         res[idx] = res[idx] / len(items)
     return np.sum(res)/n
+
 
 def meanrank(p, t):
     '''
@@ -56,26 +66,48 @@ def meanrank(p, t):
         res[idx] = minrank
     return np.mean(res), res
 
+
 def readable_predictions(p, t, d, k, labeldict):
+    """* What you can do
+    - It generates prediction which is friend to human
+    """
+    # type: (ndarray,List[List[int]],List[str],OrderedDict)->List[str]
     out = []
     for idx, item in enumerate(d):
         preds = p[idx,:k]
-        plabels = ','.join([labeldict.keys()[ii-1] if ii > 0 else '<unk>' for ii in preds])
-        tlabels = ','.join([labeldict.keys()[ii-1] if ii > 0 else '<unk>' for ii in t[idx]])
+        if six.PY2:
+            plabels = ','.join([labeldict.keys()[ii-1] if ii > 0 else '<unk>' for ii in preds])
+            tlabels = ','.join([labeldict.keys()[ii-1] if ii > 0 else '<unk>' for ii in t[idx]])
+        else:
+            plabels = ','.join([list(labeldict.keys())[ii-1] if ii > 0 else '<unk>' for ii in preds])
+            tlabels = ','.join([list(labeldict.keys())[ii-1] if ii > 0 else '<unk>' for ii in t[idx]])
         out.append('%s\t%s\t%s\n'%(tlabels,plabels,item))
     return out
 
+
 def main(result_path, dict_path):
-    with open('%s/predictions.npy'%result_path,'r') as f:
-        p = np.load(f)
-    with open('%s/targets.pkl'%result_path,'r') as f:
-        t = pkl.load(f)
-    with open('%s/data.pkl'%result_path,'r') as f:
-        d = pkl.load(f)
-    with open('%s/embeddings.npy'%result_path,'r') as f:
-        e = np.load(f)
-    with open('%s/label_dict.pkl'%dict_path,'r') as f:
-        labeldict = pkl.load(f)
+    if six.PY2:
+        with open('%s/predictions.npy'%result_path,'r') as f:
+            p = np.load(f)
+        with open('%s/targets.pkl'%result_path,'r') as f:
+            t = pkl.load(f)
+        with open('%s/data.pkl'%result_path,'r') as f:
+            d = pkl.load(f)
+        with open('%s/embeddings.npy'%result_path,'r') as f:
+            e = np.load(f)
+        with open('%s/label_dict.pkl'%dict_path,'r') as f:
+            labeldict = pkl.load(f)
+    else:
+        with open('%s/predictions.npy'%result_path,'rb') as f:
+            p = np.load(f)
+        with open('%s/targets.pkl'%result_path,'rb') as f:
+            t = pkl.load(f)
+        with open('%s/data.pkl'%result_path,'rb') as f:
+            d = pkl.load(f)
+        with open('%s/embeddings.npy'%result_path,'rb') as f:
+            e = np.load(f)
+        with open('%s/label_dict.pkl'%dict_path,'rb') as f:
+            labeldict = pkl.load(f)
 
     readable = readable_predictions(p, t, d, 10, labeldict)
     with io.open('%s/readable.txt'%result_path,'w') as f:

@@ -1,18 +1,28 @@
+#! -*- coding: utf-8 -*-
+# module
+import tweet2vec.batch_char as batch
+from tweet2vec.t2v import tweet2vec, init_params, load_params
+from tweet2vec.settings_char import N_BATCH, MAX_LENGTH, MAX_CLASSES
+from tweet2vec import evaluate
+# theano
 import numpy as np
 import lasagne
 import theano
 import theano.tensor as T
+# logger
+from tweet2vec.logger import logger
+# else
 import random
 import sys
-import batch_char as batch
 import time
-import cPickle as pkl
 import io
-import evaluate
-
 from collections import OrderedDict
-from t2v import tweet2vec, init_params, load_params
-from settings_char import N_BATCH, MAX_LENGTH, MAX_CLASSES
+import six
+if six.PY2:
+    import cPickle as pkl
+else:
+    import pickle as pkl
+
 
 def classify(tweet, t_mask, params, n_classes, n_chars):
     # tweet embedding
@@ -22,7 +32,8 @@ def classify(tweet, t_mask, params, n_classes, n_chars):
 
     return lasagne.layers.get_output(l_dense), lasagne.layers.get_output(emb_layer)
 
-def main(args):
+
+def main(args, is_save=True):
 
     data_path = args[0]
     model_path = args[1]
@@ -30,7 +41,7 @@ def main(args):
     if len(args)>3:
         m_num = int(args[3])
 
-    print("Preparing Data...")
+    logger.debug("Preparing Data...")
     # Test data
     Xt = []
     yt = []
@@ -41,13 +52,13 @@ def main(args):
             yt.append(yc.split(','))
 
     # Model
-    print("Loading model params...")
+    logger.debug("Loading model params...")
     if len(args)>3:
         params = load_params('%s/model_%d.npz' % (model_path,m_num))
     else:
         params = load_params('%s/best_model.npz' % model_path)
 
-    print("Loading dictionaries...")
+    logger.debug("Loading dictionaries...")
     with open('%s/dict.pkl' % model_path, 'rb') as f:
         chardict = pkl.load(f)
     with open('%s/label_dict.pkl' % model_path, 'rb') as f:
@@ -58,7 +69,7 @@ def main(args):
     # iterators
     test_iter = batch.BatchTweets(Xt, yt, labeldict, batch_size=N_BATCH, max_classes=MAX_CLASSES, test=True)
 
-    print("Building network...")
+    logger.debug("Building network...")
     # Tweet variables
     tweet = T.itensor3()
     targets = T.imatrix()
@@ -71,12 +82,12 @@ def main(args):
     embeddings = classify(tweet, t_mask, params, n_classes, n_char)[1]
 
     # Theano function
-    print("Compiling theano functions...")
+    logger.debug("Compiling theano functions...")
     predict = theano.function([tweet,t_mask],predictions)
     encode = theano.function([tweet,t_mask],embeddings)
 
     # Test
-    print("Testing...")
+    logger.debug("Testing...")
     out_data = []
     out_pred = []
     out_emb = []
@@ -94,15 +105,26 @@ def main(args):
             out_target.append(y[idx])
 
     # Save
-    print("Saving...")
-    with open('%s/data.pkl'%save_path,'w') as f:
-        pkl.dump(out_data,f)
-    with open('%s/predictions.npy'%save_path,'w') as f:
-        np.save(f,np.asarray(out_pred))
-    with open('%s/embeddings.npy'%save_path,'w') as f:
-        np.save(f,np.asarray(out_emb))
-    with open('%s/targets.pkl'%save_path,'w') as f:
-        pkl.dump(out_target,f)
+    if is_save==True:
+        logger.debug("Saving...")
+        if six.PY2:
+            with open('%s/data.pkl'%save_path,'w') as f:
+                pkl.dump(out_data,f)
+            with open('%s/predictions.npy'%save_path,'w') as f:
+                np.save(f,np.asarray(out_pred))
+            with open('%s/embeddings.npy'%save_path,'w') as f:
+                np.save(f,np.asarray(out_emb))
+            with open('%s/targets.pkl'%save_path,'w') as f:
+                pkl.dump(out_target,f)
+        else:
+            with open('%s/data.pkl'%save_path,'wb') as f:
+                pkl.dump(out_data,f)
+            with open('%s/predictions.npy'%save_path,'wb') as f:
+                np.save(f,np.asarray(out_pred))
+            with open('%s/embeddings.npy'%save_path,'wb') as f:
+                np.save(f,np.asarray(out_emb))
+            with open('%s/targets.pkl'%save_path,'wb') as f:
+                pkl.dump(out_target,f)
 
 
 if __name__ == '__main__':

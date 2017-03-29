@@ -1,12 +1,14 @@
+#! -*- coding: utf-8 -*-
 import numpy as np
 import lasagne
 import theano
 import theano.tensor as T
 import random
 import pdb
-
 from collections import OrderedDict
-from settings_char import N_BATCH, MAX_LENGTH, CHAR_DIM, SCALE, C2W_HDIM, WDIM, GRAD_CLIP, BIAS
+import six
+# module
+from tweet2vec.settings_char import N_BATCH, MAX_LENGTH, CHAR_DIM, SCALE, C2W_HDIM, WDIM, GRAD_CLIP, BIAS
 
 def init_params(n_chars):
     '''
@@ -93,17 +95,23 @@ def tweet2vec(tweet,mask,params,n_chars):
     l_c2w_source = lasagne.layers.ElemwiseSumLayer([l_fdense_source, l_bdense_source], coeffs=1)
 
     return l_c2w_source
-    
+
+
 def load_params(path):
     """
     Load previously saved model
     """
     params = OrderedDict()
-
-    with open(path,'r') as f:
-        npzfile = np.load(f)
-        for kk, vv in npzfile.iteritems():
-            params[kk] = vv
+    if six.PY2:
+        with open(path,'r') as f:
+            npzfile = np.load(f)
+            for kk, vv in npzfile.iteritems():
+                params[kk] = vv
+    else:
+        with open(path,'rb') as f:
+            npzfile = np.load(f)
+            for kk, vv in npzfile.iteritems():
+                params[kk] = vv
 
     return params
 

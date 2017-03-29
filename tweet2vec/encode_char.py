@@ -1,20 +1,29 @@
-import numpy as np
+#! -*- coding: utf-8 -*-
+# module
+import tweet2vec.batch_char as batch
+from tweet2vec.t2v import tweet2vec, init_params, load_params
+from tweet2vec.settings_char import N_BATCH, MAX_LENGTH, MAX_CLASSES
+# theano
 import lasagne
 import theano
 import theano.tensor as T
+import numpy as np
+# else
 import sys
-import batch_char as batch
-import cPickle as pkl
+import six
+if six.PY2:
+    import cPickle as pkl
+else:
+    import pickle as pkl
 import io
 
-from t2v import tweet2vec, init_params, load_params
-from settings_char import N_BATCH, MAX_LENGTH, MAX_CLASSES
 
 def invert(d):
     out = {}
     for k,v in d.iteritems():
         out[v] = k
     return out
+
 
 def classify(tweet, t_mask, params, n_classes, n_chars):
     # tweet embedding
@@ -23,6 +32,7 @@ def classify(tweet, t_mask, params, n_classes, n_chars):
     l_dense = lasagne.layers.DenseLayer(emb_layer, n_classes, W=params['W_cl'], b=params['b_cl'], nonlinearity=lasagne.nonlinearities.softmax)
 
     return lasagne.layers.get_output(l_dense), lasagne.layers.get_output(emb_layer)
+
 
 def main(args):
 

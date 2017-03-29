@@ -1,13 +1,31 @@
+#! -*- coding: utf-8 -*-
+# module
+from tweet2vec.settings_char import MAX_LENGTH
+# typing
+from typing import List, Tuple, Any
+# else
 import numpy as np
-import cPickle as pkl
+import six
 import codecs
-
 from collections import OrderedDict
-from settings_char import MAX_LENGTH
+if six.PY2:
+    import cPickle as pkl
+else:
+    import pickle as pkl
 
-class BatchTweets():
 
+class BatchTweets(object):
     def __init__(self, data, targets, labeldict, batch_size=128, max_classes=1000, test=False):
+        """* What you can do
+        * Parameters
+        - data
+        - targets
+        - labeldict
+        - batch_size
+        - max_classes
+        - test
+        """
+        # type: (List[str],List[str],OrderedDict,int,int,bool)->None
         # convert targets to indices
         if not test:
             tags = []
@@ -53,6 +71,28 @@ class BatchTweets():
 
         return x, y
 
+    def __next__(self):
+        """* What you can do
+        - This is iterator function for python3.x
+        """
+        if self.curr_pos >= len(self.indices):
+            self.reset()
+            raise StopIteration()
+
+        # current batch size
+        curr_batch_size = np.minimum(self.batch_size, self.curr_remaining)
+
+        # indices for current batch
+        curr_indices = self.curr_indices[self.curr_pos:self.curr_pos+curr_batch_size]
+        self.curr_pos += curr_batch_size
+        self.curr_remaining -= curr_batch_size
+
+        # data and targets for current batch
+        x = [self.data[ii] for ii in curr_indices]
+        y = [self.targets[ii] for ii in curr_indices]
+
+        return x, y
+
     def __iter__(self):
         return self
 
@@ -77,11 +117,13 @@ def prepare_data(seqs_x, chardict, n_chars=1000):
 
     return np.expand_dims(x, axis=2), x_mask
 
+
 def build_dictionary(text):
     """
     Build a character dictionary
     text: list of tweets
     """
+    # type:(List[str])->Tuple[OrderedDict,OrderedDict]
     charcount = OrderedDict()
     for cc in text:
         chars = list(cc)
@@ -94,8 +136,12 @@ def build_dictionary(text):
     sorted_idx = np.argsort(freqs)[::-1]
 
     chardict = OrderedDict()
-    for idx, sidx in enumerate(sorted_idx):
-        chardict[chars[sidx]] = idx + 1
+    if six.PY3:
+        for idx, sidx in enumerate(sorted_idx):
+            chardict[list(chars)[sidx]] = idx + 1
+    else:
+        for idx, sidx in enumerate(sorted_idx):
+            chardict[chars[sidx]] = idx + 1
 
     return chardict, charcount
 
@@ -103,15 +149,23 @@ def save_dictionary(worddict, wordcount, loc):
     """
     Save a dictionary to the specified location 
     """
-    with open(loc, 'w') as f:
-        pkl.dump(worddict, f)
-        pkl.dump(wordcount, f)
+    # type: (OrderedDict,OrderedDict,str)->None
+    if six.PY2:
+        with open(loc, 'w') as f:
+            pkl.dump(worddict, f)
+            pkl.dump(wordcount, f)
+    else:
+        with open(loc, 'wb') as f:
+            pkl.dump(worddict, f)
+            pkl.dump(wordcount, f)
+
 
 def build_label_dictionary(targets):
     """
     Build a label dictionary
     targets: list of labels, each item may have multiple labels
     """
+    # type: (List[str])->Tuple[OrderedDict,OrderedDict]
     labelcount = OrderedDict()
     for l in targets:
         if l not in labelcount:
@@ -122,8 +176,12 @@ def build_label_dictionary(targets):
     sorted_idx = np.argsort(freqs)[::-1]
 
     labeldict = OrderedDict()
-    for idx, sidx in enumerate(sorted_idx):
-        labeldict[labels[sidx]] = idx + 1
+    if six.PY2:
+        for idx, sidx in enumerate(sorted_idx):
+            labeldict[labels[sidx]] = idx + 1
+    else:
+        for idx, sidx in enumerate(sorted_idx):
+            labeldict[list(labels)[sidx]] = idx + 1
 
     return labeldict, labelcount
 
