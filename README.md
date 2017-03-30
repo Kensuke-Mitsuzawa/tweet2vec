@@ -1,8 +1,9 @@
 Tweet2Vec
 ======================
+
 This repository provides a character-level encoder/trainer for social media posts. See [Tweet2Vec](https://arxiv.org/abs/1605.03481) paper for details.
 
-There are two models implemented in the paper - the character level _tweet2vec_ and a word level baseline. They can be found in their respective directories, with instructions on how to run. General information about prerequisites and data format can be found below.
+This code is available as python package. 
 
 Prerequisites
 ======================
@@ -64,9 +65,25 @@ Unfortunately we are not allowed to release the data used in experiments from th
 
 4. __Test/Validation File Format__ - After training the model, you can test it on a held-out set using `_tester.sh` scripts provided. It has the same format as the training file format, except it can have multiple tags per separated by a comma. Example in `misc/tester_example.txt`.
 
+
+Example code
+=======================
+
+You can check example code which shows you how to use this package.
+
+See `example.py` for detail.
+
 Note
 ==========================
+
 Make sure to add `THEANO_FLAGS=device=cpu,floatX=float32` before any command if you are running on a CPU.
+
+like
+
+```
+THEANO_FLAGS=device=cpu,floatX=float32 python example.py
+```
+
 
 Contributors
 ==========================
