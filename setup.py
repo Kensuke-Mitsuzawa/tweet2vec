@@ -40,7 +40,9 @@ setup(
     dependency_links=dependency_links,
     url=url,
     license=license,
-    packages=find_packages(exclude='tests'),
+    packages=find_packages(),
     classifiers=classifiers,
-    test_suite='tests' #added
+    test_suite='tests',
+    include_package_data=True,
+    zip_safe=False
 )
