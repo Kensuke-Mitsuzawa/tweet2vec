@@ -1,6 +1,8 @@
 #! -*- coding: utf-8 -*-
 # module
 from tweet2vec.settings_char import MAX_LENGTH
+# logger
+from tweet2vec.logger import logger
 # typing
 from typing import List, Tuple, Any
 # else
@@ -71,6 +73,7 @@ class BatchTweets(object):
 
         return x, y
 
+    ### added by kensuke-mi. For python3.x ###
     def __next__(self):
         """* What you can do
         - This is iterator function for python3.x
@@ -101,7 +104,14 @@ def prepare_data(seqs_x, chardict, n_chars=1000):
     Prepare the data for training - add masks and remove infrequent characters
     """
     seqsX = []
+    from tweet2vec.settings_char import MAX_LENGTH
     for cc in seqs_x:
+        ## added by kensuke-mi ##
+        if len(cc) > MAX_LENGTH:
+            logger.warning("""
+            Input text is longer than MAX_LENGTH. It cuts off automatically. You might consider to set bigger value on settings_char.MAX_LENGTH.
+            Input={}""".format(cc))
+            cc = cc[:MAX_LENGTH]
         seqsX.append([chardict[c] if c in chardict and chardict[c] <= n_chars else 0 for c in list(cc)])
     seqs_x = seqsX
 
@@ -131,17 +141,21 @@ def build_dictionary(text):
             if c not in charcount:
                 charcount[c] = 0
             charcount[c] += 1
-    chars = charcount.keys()
-    freqs = charcount.values()
-    sorted_idx = np.argsort(freqs)[::-1]
+    #chars = charcount.keys()
+    #freqs = charcount.values()
+    #sorted_idx = np.argsort(freqs)[::-1]
+    seq_sorted_tuple = sorted(charcount.items(), key=lambda t: t[1], reverse=True)
 
     chardict = OrderedDict()
+    for idx, char_freq_tuple in enumerate(seq_sorted_tuple):
+        chardict[char_freq_tuple[0]] = idx + 1
+    '''
     if six.PY3:
         for idx, sidx in enumerate(sorted_idx):
             chardict[list(chars)[sidx]] = idx + 1
     else:
         for idx, sidx in enumerate(sorted_idx):
-            chardict[chars[sidx]] = idx + 1
+            chardict[chars[sidx]] = idx + 1'''
 
     return chardict, charcount
 
@@ -171,17 +185,21 @@ def build_label_dictionary(targets):
         if l not in labelcount:
             labelcount[l] = 0
         labelcount[l] += 1
-    labels = labelcount.keys()
-    freqs = labelcount.values()
-    sorted_idx = np.argsort(freqs)[::-1]
-
+    #labels = labelcount.keys()
+    #freqs = labelcount.values()
+    #sorted_idx = np.argsort(freqs)[::-1]
+    labeldict = OrderedDict()
+    seq_sorted_label = sorted(labelcount.items(), key=lambda t:t[1], reverse=True)
+    for idx, label_freq_t in enumerate(seq_sorted_label):
+        labeldict[label_freq_t[0]] = idx + 1
+    """
     labeldict = OrderedDict()
     if six.PY2:
         for idx, sidx in enumerate(sorted_idx):
             labeldict[labels[sidx]] = idx + 1
     else:
         for idx, sidx in enumerate(sorted_idx):
-            labeldict[list(labels)[sidx]] = idx + 1
+            labeldict[list(labels)[sidx]] = idx + 1"""
 
     return labeldict, labelcount
 

@@ -64,7 +64,10 @@ def classify(tweet, t_mask, params, n_classes, n_chars):
     return lasagne.layers.get_output(l_dense), l_dense, lasagne.layers.get_output(emb_layer)
 
 
-def main(train_path,val_path,save_path,num_epochs=NUM_EPOCHS):
+
+def main(train_path, val_path, save_path, num_epochs=NUM_EPOCHS):
+    """"""
+    # type: (str,str,str,int)->None
     global T1
 
     # save settings
@@ -261,7 +264,7 @@ def main(train_path,val_path,save_path,num_epochs=NUM_EPOCHS):
 
     except KeyboardInterrupt:
         pass
-    print("Total training time = {}".format(time.time()-start))
+    logger.debug("Total training time = {}".format(time.time()-start))
 
 if __name__ == '__main__':
     main(sys.argv[1],sys.argv[2],sys.argv[3])

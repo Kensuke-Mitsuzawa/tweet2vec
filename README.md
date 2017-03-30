@@ -6,11 +6,50 @@ There are two models implemented in the paper - the character level _tweet2vec_ 
 
 Prerequisites
 ======================
-- Python 2.7
+- Python
+    - Python2.7
+    - Python3.5
 - Theano and all dependencies (latest)
 - Lasagne (latest)
 - Numpy
 - Maybe more, just use `pip install` if you get an error
+
+
+Setup
+======================
+
+## Install
+
+I recommend to make separated python environment with virtualenv or conda etc.
+
+```
+python setup.py install
+```
+
+### Hints
+
+You might see error messages during installing following packages
+
+- numpy
+- scipy
+- lasagne
+- Theano
+
+In that case, you're supposed to make install manually.
+
+If you're using conda under anaconda-distribution, it's easy to install them.
+
+You install packages with conda
+
+```
+$ conda install numpy scipy theano
+```
+
+Conda does not have `lasagne`, so you install it with pip
+
+```
+$ pip install lasagne
+```
 
 
 Data and Preprocessing

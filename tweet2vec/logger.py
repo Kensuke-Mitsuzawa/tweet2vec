@@ -12,6 +12,5 @@ handler.setFormatter(custmoFormatter)
 
 logger_name = 'tweet2vec'
 logger = logging.getLogger(logger_name)
-#logger.setLevel(logging.INFO)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(handler)

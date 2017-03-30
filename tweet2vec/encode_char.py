@@ -20,8 +20,13 @@ import io
 
 def invert(d):
     out = {}
-    for k,v in d.iteritems():
-        out[v] = k
+    if six.PY2:
+        for k,v in d.iteritems():
+            out[v] = k
+    else:
+        for k,v in d.items():
+            out[v] = k
+
     return out
 
 
@@ -83,7 +88,10 @@ def main(args):
     print("Encoding...")
     out_pred = []
     out_emb = []
-    numbatches = len(Xt)/N_BATCH + 1
+    if six.PY2:
+        numbatches = len(Xt)/N_BATCH + 1
+    else:
+        numbatches = int(len(Xt) / N_BATCH) + 1
     for i in range(numbatches):
         xr = Xt[N_BATCH*i:N_BATCH*(i+1)]
         x, x_m = batch.prepare_data(xr, chardict, n_chars=n_char)
@@ -97,11 +105,18 @@ def main(args):
 
     # Save
     print("Saving...")
-    with io.open('%s/predicted_tags.txt'%save_path,'w') as f:
-        for item in out_pred:
-            f.write(item + '\n')
-    with open('%s/embeddings.npy'%save_path,'w') as f:
-        np.save(f,np.asarray(out_emb))
+    if six.PY2:
+        with io.open('%s/predicted_tags.txt'%save_path,'w') as f:
+            for item in out_pred:
+                f.write(item + '\n')
+        with open('%s/embeddings.npy'%save_path,'w') as f:
+            np.save(f,np.asarray(out_emb))
+    else:
+        with io.open('%s/predicted_tags.txt'%save_path,'w') as f:
+            for item in out_pred:
+                f.write(item + '\n')
+        with open('%s/embeddings.npy'%save_path,'wb') as f:
+            np.save(f,np.asarray(out_emb))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
