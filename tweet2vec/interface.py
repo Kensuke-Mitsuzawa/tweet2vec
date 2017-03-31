@@ -420,10 +420,16 @@ class Twee2vecInterface(object):
                     if np.mod(uidx, SAVEF) == 0:
                         logger.debug("Saving...")
                         saveparams = OrderedDict()
-                        for kk, vv in params.iteritems():
-                            saveparams[kk] = vv.get_value()
-                            np.savez('%s/model.npz' % save_dir, **saveparams)
-                            print("Done.")
+                        if six.PY2:
+                            for kk, vv in params.iteritems():
+                                saveparams[kk] = vv.get_value()
+                                np.savez('%s/model.npz' % save_dir, **saveparams)
+                                logger.debug("Done.")
+                        else:
+                            for kk, vv in params.items():
+                                saveparams[kk] = vv.get_value()
+                                np.savez('%s/model.npz' % save_dir, **saveparams)
+                                logger.debug("Done.")
 
                 logger.debug("Testing on Validation set...")
                 preds = []
