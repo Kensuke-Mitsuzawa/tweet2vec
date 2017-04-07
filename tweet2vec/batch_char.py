@@ -36,7 +36,10 @@ class BatchTweets(object):
         else:
             tags = []
             for line in targets:
-                tags.append([labeldict[l] if l in labeldict and labeldict[l] < max_classes else 0 for l in line])
+                if isinstance(line, list):
+                    tags.append([labeldict[l] if l in labeldict and labeldict[l] < max_classes else 0 for l in line])
+                else:
+                    tags.append([labeldict[line] if line in labeldict and labeldict[line] < max_classes else 0])
 
         self.batch_size = batch_size
         self.data = data

@@ -67,13 +67,17 @@ twee2vec_obj = Twee2vecInterface()
 PATH_TRAINED_MODEL = './example-model'
 if not os.path.exists(PATH_TRAINED_MODEL):
     os.mkdir(PATH_TRAINED_MODEL)
-### Model training ###
+### Model training. The trained model is saved under PATH_TRAINED_MODEL ###
 model_object = twee2vec_obj.train(training_dataset=training_dataset,
                                   validation_dataset=validation_dataset,
                                   save_dir=PATH_TRAINED_MODEL)
+#### You can load model object from disk ###
+trained_model_obj = ModelObject.load_model(PATH_TRAINED_MODEL)
+
 ### Prediction ###
 seq_predicted_obj = twee2vec_obj.predict(test_data=test_dataset,
-                                         model_object=model_object)
+                                         model_object=trained_model_obj)
+
 for prediction_result in seq_predicted_obj:
     assert isinstance(prediction_result, PredictionRecordObject)
     print('Prediction label={} for id={} text={}'.format(

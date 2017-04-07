@@ -129,10 +129,10 @@ class InputDataset(object):
 class ModelObject(object):
     """This is data object class to handle trained-model"""
     def __init__(self,
-                 best_model,
-                 seq_epoch_model,
                  chardict,
                  labeldict,
+                 best_model=None,
+                 seq_epoch_model=None,
                  charcount=None,
                  labelcount=None
                  ):
@@ -144,6 +144,21 @@ class ModelObject(object):
         self.labeldict = labeldict
         self.charcount = charcount
         self.labelcount = labelcount
+
+    def save_dictionary(self, save_dir):
+        """* What you can do
+        - It saves only dictionary object into local disk
+        """
+        # type: (str)->None
+        batch.save_dictionary(self.chardict, self.charcount, '%s/dict.pkl' % save_dir)
+        batch.save_dictionary(self.labeldict, self.labelcount, '%s/label_dict.pkl' % save_dir)
+
+    def save_epoch_model(self, model, epoch_number, save_dir):
+        """* What you can do
+        - It saves model object at each epoch
+        """
+        # type: (OrderedDict,int,str)->None
+        np.savez('%s/model_%d.npz' % (save_dir, epoch_number), **model)
 
     def save_model(self, save_dir):
         """* What you can do
@@ -325,6 +340,14 @@ class Twee2vecInterface(object):
                                      batch_size=N_BATCH,
                                      max_classes=MAX_CLASSES,
                                      test=True)
+        ## save dictionary object ##
+        model_object = ModelObject(chardict=chardict,
+                                   labeldict=labeldict,
+                                   charcount=charcount,
+                                   labelcount=labelcount,
+                                   best_model=None,
+                                   seq_epoch_model=None)
+
 
         logger.debug("Building network...")
         # Tweet variables
@@ -459,7 +482,6 @@ class Twee2vecInterface(object):
                         for kk, vv in params.items():
                             saveparams[kk] = vv.get_value()
                     best_model = saveparams
-                    #np.savez('%s/best_model.npz' % (save_dir), **saveparams)
 
                 logger.info(
                     "Epoch {} Training Cost {} Validation Precision {} Regularization Cost {} Max Precision {}".format(
@@ -475,6 +497,8 @@ class Twee2vecInterface(object):
                     for kk, vv in params.items():
                         saveparams[kk] = vv.get_value()
                 seq_epoch_model.append(saveparams)
+                ## save model at each training epoch ##
+                model_object.save_epoch_model(model=saveparams, epoch_number=epoch, save_dir=save_dir)
 
         except KeyboardInterrupt:
             pass
@@ -487,16 +511,11 @@ class Twee2vecInterface(object):
         logger.info(msg='End training!')
         logger.info(msg="Total training time = {}".format(time.time() - start))
 
-        model_object = ModelObject(best_model=best_model,
-                                   seq_epoch_model=seq_epoch_model,
-                                   chardict=chardict,
-                                   labeldict=labeldict,
-                                   charcount=charcount,
-                                   labelcount=labelcount)
+        model_object.best_model = best_model
+        model_object.seq_epoch_model = seq_epoch_model
         model_object.save_model(save_dir=save_dir)
 
         return model_object
-
 
     def predict(self, test_data, model_object):
         """* What you can do
