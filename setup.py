@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-version = '0.1'
+version = '0.2'
 name = 'tweet2vec'
 short_description = 'tweet2vec model for Japanese language text'
 author = 'Kensuke Mitsuzawa'
